@@ -1,13 +1,3 @@
-
-
-
-print('主程序执行开始...')
-# input_file = open('/Users/zc/ztt/电力资料/dianli/src/asserts/data3.csv','r')
-# input_file = open('/Users/zc/ztt/电力资料/dianli/src/asserts/test.csv','r')
-# out_file = open('/Users/zc/ztt/电力资料/dianli/src/code2/result/op_label.txt','w')
-# input_dict = open('/Users/zc/ztt/电力资料/dianli/src/code2/data/op.csv', 'r')
-
-
 def read_need_label_file(input_file_path, out_file_path, dict_path):
 
     out_file = open(out_file_path, 'w')
@@ -16,7 +6,8 @@ def read_need_label_file(input_file_path, out_file_path, dict_path):
     input_lines = input_file.readlines()
     print('读入数据文件结束！')
     window_size, power_dict = read_dict(dict_path)
-    label_file(window_size, input_lines,)
+    labels = ['B','E','M']
+    label_file(window_size, input_lines,out_file, power_dict, labels)
     input_file.close()
     out_file.close()
 
@@ -25,15 +16,14 @@ def read_dict(dict_path):
     print('开始读入字典文件...')
     input_dict_file = open(dict_path, 'r')
     dict_lines = input_dict_file.readlines()
-    power_dict = set()
+    power_dict = []
     max_len = 0
     for word_line in dict_lines:
-        word_line = word_line.strip('\n')
-        word, label = word_line.split('\t')
+        word = word_line.strip('\n')
         if len(word) > max_len:
             max_len = len(word)
         # if word_line not in power_dict:
-        power_dict.add({'word': word, 'label': label})
+        power_dict.append(word)
     print('读入数据文件结束！')
     input_dict_file.close()
     return max_len, power_dict
@@ -52,7 +42,8 @@ def label_file(window_size, input_lines, out_file, power_dict, labels):
         result = label(sentence, window_size, power_dict, labels)
         for item in result:
             out_file.write(item)
-        out_file.write('\n')
+        if len(result) > 0:
+            out_file.write('\n')
         # print(result)
 
         if count% 1000 == 0:
@@ -62,6 +53,9 @@ def label_file(window_size, input_lines, out_file, power_dict, labels):
 
 def label(sentence, window_size, power_dict, labels):
     index = len(sentence)
+
+    # O数量记录
+    count_O = 0
     result = []
     while index > 0:
         tmp = ''
@@ -83,13 +77,21 @@ def label(sentence, window_size, power_dict, labels):
         elif tmp == ' ':
             pass
         elif len(tmp) == 1:
+            count_O += 1
             result.append(tmp + '\t' + 'O' + '\n')
         index = index - 1
     result.reverse()
+    if count_O == len(sentence):
+        return []
     return result
 
 
-test_sentence = '干式变压器绕组温度达到启动定值时，应能启动风机，且工作正常。'
-power_dict = ['干式变压器绕组','风机']
-test_result = label(test_sentence,7,power_dict,['B-DEC','E-DEC','M-DEC'])
-print(test_result)
+# test_sentence = '干式变压器绕组温度达到启动定值时，应能启动风机，且工作正常。'
+# power_dict = ['干式变压器绕组','风机']
+# test_result = label(test_sentence,7,power_dict,['B-DEC','E-DEC','M-DEC'])
+# print(test_result)
+print('主程序执行开始...')
+input_file_path = '/Users/zc/ztt/电力资料/dianli/src/asserts/electric.csv'
+out_file_path = '/Users/zc/ztt/电力资料/dianli/src/code2/result/electric_label.txt'
+dict_path = '/Users/zc/ztt/电力资料/dianli/src/code2/data/device3.csv'
+read_need_label_file(input_file_path,out_file_path,dict_path)
